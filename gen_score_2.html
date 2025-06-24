@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gen-RISE Score Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 800px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #3B82F6;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2563EB;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        #probabilityMessage {
+            font-size: 20px; /* Larger font size for the message */
+            color: green; /* Optional: Change color to green */
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Gen-RISE Score Calculator</h1>
+
+<label for="id_dd">Intellectual Disability/Developmental Delay (1 for Yes, 0 for No):</label>
+<input type="number" id="id_dd" min="0" max="1" required>
+
+<label for="seizure_onset">Seizure Onset Age (< 3 years old, 1 for Yes, 0 for No):</label>
+<input type="number" id="seizure_onset" min="0" max="1" required>
+
+<label for="eeg_finding">EEG Findings (1 for Normal, 2 for Epileptiform discharges, 3 for Nonspecific findings, 4 for Unavailable):</label>
+<input type="number" id="eeg_finding" min="1" max="4" required>
+
+<button onclick="calculateGenRise()">Calculate Gen-RISE Score</button>
+
+<div id="result"></div>
+<div id="probabilityMessage"></div> <!-- Message div for probability -->
+
+<script>
+    function calculateGenRise() {
+        // Get user inputs
+        const id_dd = parseFloat(document.getElementById('id_dd').value);
+        const seizure_onset = parseFloat(document.getElementById('seizure_onset').value);
+        const eeg_finding = parseFloat(document.getElementById('eeg_finding').value);
+
+        // Assign EEG finding score directly based on user input
+        const eegScore = eeg_finding; // EEG finding is already 1, 2, 3, or 4
+
+        // Calculate Gen-RISE score
+        const genRiseScore = (1.3 * id_dd) + (0.8 * seizure_onset) + (0.3 * eegScore) - 2.4;
+
+        // Calculate probability
+        const probability = logOddsToProbability(genRiseScore);
+
+        // Display Gen-RISE Score
+        document.getElementById('result').innerHTML = `
+            <h2>Gen-RISE Score: ${genRiseScore.toFixed(2)}</h2>
+        `;
+
+        // Display probability message based on thresholds
+        const probabilityMessage = document.getElementById('probabilityMessage');
+        if (probability >= 0.7) {
+            probabilityMessage.innerHTML = "There is a greater than 70% probability that the patient carries a pathogenic variant related to the epilepsy.";
+        } else if (probability >= 0.6) {
+            probabilityMessage.innerHTML = "There is a greater than 60% probability that the patient carries a pathogenic variant related to the epilepsy.";
+        } else if (probability >= 0.5) {
+            probabilityMessage.innerHTML = "There is a greater than 50% probability that the patient carries a pathogenic variant related to the epilepsy.";
+        } else {
+            probabilityMessage.innerHTML = ""; // Clear message if probability is not > 0.5
+        }
+    }
+
+    function logOddsToProbability(logOdds) {
+        return 1 / (1 + Math.exp(-logOdds));
+    }
+</script>
+
+</body>
+</html>
